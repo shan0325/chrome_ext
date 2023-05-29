@@ -5,26 +5,28 @@ const data = {
   tooltipId: "chromeExtTooltip",
   tooltipZoomBtnId: "chromeExtTooltipZoomBtn",
   tooltipContentId: "chromeExtTooltipContent",
-  tooltipLastTop: 100,
 };
 
 // tooltip 엘리먼트를 생성하는 함수
 function createTooltip() {
   const tooltip = document.createElement("div");
   tooltip.id = data.tooltipId;
-  tooltip.style.width = "200px";
-  tooltip.style.opacity = "70%";
+  tooltip.classList.add("chrome-ext-tooltip");
+  tooltip.style.minWidth = "100px";
+  tooltip.style.maxWidth = "250px";
+  tooltip.style.opacity = "90%";
   tooltip.style.borderRadius = "10px";
-  tooltip.style.position = "absolute";
+  tooltip.style.position = "fixed";
   tooltip.style.background = "#fff";
   tooltip.style.color = "#000";
   tooltip.style.border = "1px solid #ccc";
   tooltip.style.padding = "5px";
+  tooltip.style.paddingRight = "15px";
   tooltip.style.zIndex = "9999";
-  tooltip.style.top = "100px";
+  tooltip.style.top = "10px";
   tooltip.style.left = "10px";
   tooltip.style.display = "none";
-  tooltip.style.cursor = "pointer";
+  tooltip.style.cursor = "move";
 
   const tooltipZoomBtn = document.createElement("span");
   tooltipZoomBtn.id = data.tooltipZoomBtnId;
@@ -59,11 +61,14 @@ function handleMouseOver(event) {
   data.tooltip.childNodes[1].innerHTML = elementInfo;
   data.tooltip.childNodes[1].style.height = "";
 
-  if (target.id === data.tooltipId || target.parentNode.id === data.tooltipId) {
+  if (
+    target.id === data.tooltipId ||
+    (target.parentNode && target.parentNode.id === data.tooltipId)
+  ) {
     document.removeEventListener("mouseover", handleMouseOver);
     data.tooltip.childNodes[1].textContent = "😗🫓🍧🏜️🥰🎈";
     // data.tooltip.childNodes[1].innerHTML = "<img src='https://picsum.photos/150/150' />";
-    data.tooltip.childNodes[1].style.height = "100px";
+    data.tooltip.childNodes[1].style.height = "50px";
   }
 }
 
@@ -71,46 +76,67 @@ function handleMouseOver(event) {
 function startDrag(event) {
   data.tooltipIsDragging = true;
 
+  // 마우스 위치 - tooltop 위치(left, top)를 빼서 tooltop과 마우스 간격을 구함
   const tooltipRect = data.tooltip.getBoundingClientRect();
   data.tooltipOffset.x = event.clientX - tooltipRect.left;
   data.tooltipOffset.y = event.clientY - tooltipRect.top;
 }
 
 function moveTooltip(event) {
-  data.tooltip.style.left = `${event.pageX - data.tooltipOffset.x}px`;
-  data.tooltip.style.top = `${event.pageY - data.tooltipOffset.y}px`;
-  data.tooltipLastTop = data.tooltip.getBoundingClientRect().top;
+  data.tooltip.style.left = `${event.clientX - data.tooltipOffset.x}px`;
+  data.tooltip.style.top = `${event.clientY - data.tooltipOffset.y}px`;
 }
 
 // 엘리먼트 정보를 반환하는 함수
 function getElementInfo(element) {
-  let info = `<p>&lt;${element.tagName}&gt;<p>`;
-  if (element.className) {
-    info += `<p>Class: ${element.className}</p>`;
-  }
+  let info = "<p style='font-size:12px; font-weight: bold;'>";
+  info += `<span style='color:#8B1874;'>${element.tagName.toLowerCase()}</span>`;
   if (element.id) {
-    info += `<p>Id: ${element.id}</p>`;
+    info += `<span style='color:#2F58CD;'>#${element.id}</span>`;
   }
-
-  // 이벤트 정보 가져오기
-  const eventNames = Object.keys(element).filter((key) => key.startsWith("on"));
-  if (eventNames.length > 0) {
-    info += "<p>Events:</p>";
-    eventNames.forEach((eventName) => {
-      const handler = element[eventName];
-      if (typeof handler === "function") {
-        info += `<p>${eventName}: ${handler.name || "anonymous function"}</p>`;
-      }
-    });
+  if (element.classList && element.classList.length > 0) {
+    info += `<span style='color:#E74646;'>.${Array.from(element.classList).join(
+      "."
+    )}</span>`;
   }
+  info += `<span style='color:#537188;'>  ${element.clientWidth} x ${element.clientHeight}</span>`;
+  info += "</p>";
 
   return info;
+}
+
+function fistChangeSizeTooltip() {
+  chrome.storage.sync.get("chromeExtIsTooltipSmall", (data) => {
+    if (data && data.chromeExtIsTooltipSmall) {
+      changeSmallTooltip();
+    } else {
+      changeBigTooltip();
+    }
+  });
+}
+
+function changeSmallTooltip() {
+  data.tooltip.style.minWidth = "25px";
+  data.tooltip.style.width = "25px";
+  data.tooltip.style.height = "20px";
+  data.tooltip.childNodes[0].textContent = "+";
+  data.tooltip.childNodes[1].style.display = "none";
+}
+
+function changeBigTooltip() {
+  data.tooltip.style.minWidth = "100px";
+  data.tooltip.style.width = "";
+  data.tooltip.style.height = "";
+  data.tooltip.childNodes[0].textContent = "-";
+  data.tooltip.childNodes[1].style.display = "block";
 }
 
 data.tooltip = createTooltip();
 
 // body에 tooltip 엘리먼트 추가
 document.body.appendChild(data.tooltip);
+
+fistChangeSizeTooltip();
 
 // 마우스 오버 이벤트 리스너 등록
 document.addEventListener("mouseover", handleMouseOver);
@@ -135,22 +161,28 @@ data.tooltip.addEventListener("mouseout", () => {
   document.addEventListener("mouseover", handleMouseOver);
 });
 
-// 스크롤 시 tooltip 같이 이동
-window.addEventListener("scroll", () => {
-  data.tooltip.style.top = `${data.tooltipLastTop + window.scrollY}px`;
-});
-
 // 축소 버튼 클릭 시
 data.tooltip.childNodes[0].addEventListener("click", () => {
-  if (data.tooltip.classList.contains("tooltip-small")) {
-    data.tooltip.classList.remove("tooltip-small");
-    data.tooltip.style.width = "200px";
-    data.tooltip.style.height = "";
-    data.tooltip.childNodes[1].style.display = "block";
-  } else {
-    data.tooltip.classList.add("tooltip-small");
-    data.tooltip.style.width = "20px";
-    data.tooltip.style.height = "20px";
-    data.tooltip.childNodes[1].style.display = "none";
+  chrome.storage.sync.get("chromeExtIsTooltipSmall", (data) => {
+    if (data && data.chromeExtIsTooltipSmall) {
+      chrome.storage.sync.set({ chromeExtIsTooltipSmall: false });
+      changeBigTooltip();
+    } else {
+      chrome.storage.sync.set({ chromeExtIsTooltipSmall: true });
+      changeSmallTooltip();
+    }
+  });
+});
+
+// DB 등록
+chrome.runtime.sendMessage(
+  { myKey: "putDB", data: { isSmall: false } },
+  (response) => {
+    console.log(response);
   }
+);
+
+// DB 조회
+chrome.runtime.sendMessage({ myKey: "getDB", id: 33 }, (response) => {
+  console.log(response);
 });
