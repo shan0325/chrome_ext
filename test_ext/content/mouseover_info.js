@@ -20,8 +20,7 @@ function createTooltip() {
   tooltip.style.background = "#fff";
   tooltip.style.color = "#000";
   tooltip.style.border = "1px solid #ccc";
-  tooltip.style.padding = "5px";
-  tooltip.style.paddingRight = "15px";
+  tooltip.style.setProperty("padding", "5px 15px 5px 5px", "important");
   tooltip.style.zIndex = "9999";
   tooltip.style.top = "10px";
   tooltip.style.left = "10px";
@@ -66,8 +65,7 @@ function handleMouseOver(event) {
     (target.parentNode && target.parentNode.id === data.tooltipId)
   ) {
     document.removeEventListener("mouseover", handleMouseOver);
-    data.tooltip.childNodes[1].textContent = "😗🫓🍧🏜️🥰🎈";
-    // data.tooltip.childNodes[1].innerHTML = "<img src='https://picsum.photos/150/150' />";
+    data.tooltip.childNodes[1].textContent = "TAG INFO";
     data.tooltip.childNodes[1].style.height = "50px";
   }
 }
@@ -101,18 +99,43 @@ function getElementInfo(element) {
   }
   info += `<span style='color:#537188;'>  ${element.clientWidth} x ${element.clientHeight}</span>`;
   info += "</p>";
+  info += "<br/>";
+
+  const eleStyle = getComputedStyle(element);
+  info += '<div style="font-size:12px; color:#27374D">';
+  info += `<div>color ${eleStyle.color} <div style="display:inline-block; width:10px; height:10px; background-color:${eleStyle.color}"></div></div>`;
+  info += `<div>background color ${eleStyle.backgroundColor} <div style="display:inline-block; width:10px; height:10px; background-color:${eleStyle.backgroundColor}"></div></div>`;
+  info += "<div>";
 
   return info;
 }
 
-function fistChangeSizeTooltip() {
-  chrome.storage.sync.get("chromeExtIsTooltipSmall", (data) => {
-    if (data && data.chromeExtIsTooltipSmall) {
-      changeSmallTooltip();
-    } else {
-      changeBigTooltip();
-    }
-  });
+function initTooltip() {
+  const chromeExtIsTooltipSmall =
+    localStorage.getItem("chromeExtIsTooltipSmall") || "0";
+
+  if (chromeExtIsTooltipSmall === "0") {
+    changeBigTooltip();
+  } else {
+    changeSmallTooltip();
+  }
+
+  //   chrome.storage.sync.get("chromeExtIsTooltipSmall", (data) => {
+  //     if (data && data.chromeExtIsTooltipSmall) {
+  //       changeSmallTooltip();
+  //     } else {
+  //       changeBigTooltip();
+  //     }
+  //   });
+
+  const chromeExtTooltipLocation = localStorage.getItem(
+    "chromeExtTooltipLocation"
+  );
+  if (chromeExtTooltipLocation) {
+    const chromeExtTooltipLocationObj = JSON.parse(chromeExtTooltipLocation);
+    data.tooltip.style.left = chromeExtTooltipLocationObj.left;
+    data.tooltip.style.top = chromeExtTooltipLocationObj.top;
+  }
 }
 
 function changeSmallTooltip() {
@@ -136,7 +159,7 @@ data.tooltip = createTooltip();
 // body에 tooltip 엘리먼트 추가
 document.body.appendChild(data.tooltip);
 
-fistChangeSizeTooltip();
+initTooltip();
 
 // 마우스 오버 이벤트 리스너 등록
 document.addEventListener("mouseover", handleMouseOver);
@@ -154,6 +177,15 @@ document.addEventListener("mousemove", (event) => {
 // 드래그 종료 시 이벤트 리스너 해제
 document.addEventListener("mouseup", () => {
   data.tooltipIsDragging = false;
+
+  const chromeExtTooltipLocation = {
+    left: data.tooltip.style.left,
+    top: data.tooltip.style.top,
+  };
+  localStorage.setItem(
+    "chromeExtTooltipLocation",
+    JSON.stringify(chromeExtTooltipLocation)
+  );
 });
 
 // tooltip 마우스 아웃 시 이벤트 리스너 다시 등록
@@ -163,15 +195,26 @@ data.tooltip.addEventListener("mouseout", () => {
 
 // 축소 버튼 클릭 시
 data.tooltip.childNodes[0].addEventListener("click", () => {
-  chrome.storage.sync.get("chromeExtIsTooltipSmall", (data) => {
-    if (data && data.chromeExtIsTooltipSmall) {
-      chrome.storage.sync.set({ chromeExtIsTooltipSmall: false });
-      changeBigTooltip();
-    } else {
-      chrome.storage.sync.set({ chromeExtIsTooltipSmall: true });
-      changeSmallTooltip();
-    }
-  });
+  const chromeExtIsTooltipSmall =
+    localStorage.getItem("chromeExtIsTooltipSmall") || "0";
+
+  if (chromeExtIsTooltipSmall === "0") {
+    localStorage.setItem("chromeExtIsTooltipSmall", "1");
+    changeSmallTooltip();
+  } else {
+    localStorage.setItem("chromeExtIsTooltipSmall", "0");
+    changeBigTooltip();
+  }
+
+  //   chrome.storage.sync.get("chromeExtIsTooltipSmall", (data) => {
+  //     if (data && data.chromeExtIsTooltipSmall) {
+  //       chrome.storage.sync.set({ chromeExtIsTooltipSmall: false });
+  //       changeBigTooltip();
+  //     } else {
+  //       chrome.storage.sync.set({ chromeExtIsTooltipSmall: true });
+  //       changeSmallTooltip();
+  //     }
+  //   });
 });
 
 // DB 등록
