@@ -65,7 +65,7 @@ function handleMouseOver(event) {
     (target.parentNode && target.parentNode.id === data.tooltipId)
   ) {
     document.removeEventListener("mouseover", handleMouseOver);
-    data.tooltip.childNodes[1].textContent = "TAG INFO";
+    data.tooltip.childNodes[1].textContent = "<TAG> INFO";
     data.tooltip.childNodes[1].style.height = "50px";
   }
 }
