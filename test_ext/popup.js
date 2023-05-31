@@ -62,7 +62,6 @@ const setColor = (progress) => {
   const numStops = colorStops.length;
 
   const index = (numStops - 1) * progress;
-  console.log(`progress : ${progress} / index : ${index}`);
   const startIndex = Math.floor(index);
   const endIndex = Math.ceil(index);
 
@@ -134,3 +133,25 @@ updatePositionTime();
 setInterval(() => {
   updatePositionTime();
 }, 1000);
+
+///////////////////////////////////////////////////////////////////////
+
+// 토글 true 시 태그 정보 미노출
+const toggleSwitch = document.querySelector("#toggle");
+toggleSwitch.addEventListener('click', async (event) => {
+  const checked = event.currentTarget.checked
+
+  let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  chrome.scripting.executeScript({
+    target: { tabId: tab.id },
+    function: toogleTooltip,
+  });
+});
+
+function toogleTooltip() {
+  document.body.style.backgroundColor = '#999';
+
+  const chromeExtTooltip = document.querySelector("#chromeExtTooltip");
+  console.log(chromeExtTooltip);
+  
+}

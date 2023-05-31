@@ -5,7 +5,7 @@
  * - 디폴트 컬러를 지정하여 스토리지 API 를 호출하여 지정한 색을 저장시킵니다.
  **/
 const data = {
-  color: "#3aa757",
+  toogle: false,
   db: {
     DB_NAME: "chromeExtDB",
     STORE_NAME: "settings",
@@ -118,7 +118,7 @@ chrome.runtime.onInstalled.addListener((details) => {
     );
     setupDB();
 
-    chrome.storage.sync.set({ color: data.color });
+    chrome.storage.sync.set({ toogle: data.toogle });
     chrome.storage.sync.set({ chromeExtIsTooltipSmall: false });
   } else if (details.reason == "update") {
     sendNotification(
@@ -127,7 +127,6 @@ chrome.runtime.onInstalled.addListener((details) => {
       (dwellingTimeMs = 5000)
     );
   }
-  console.log("기본 배경색은 %cgreen", `color: ${data.color}`);
 });
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {

@@ -12,6 +12,7 @@ function createTooltip() {
   const tooltip = document.createElement("div");
   tooltip.id = data.tooltipId;
   tooltip.classList.add("chrome-ext-tooltip");
+  tooltip.style.fontSize = "12px";
   tooltip.style.minWidth = "100px";
   tooltip.style.maxWidth = "250px";
   tooltip.style.opacity = "90%";
@@ -21,7 +22,7 @@ function createTooltip() {
   tooltip.style.color = "#000";
   tooltip.style.border = "1px solid #ccc";
   tooltip.style.setProperty("padding", "5px 15px 5px 5px", "important");
-  tooltip.style.zIndex = "9999";
+  tooltip.style.zIndex = "999999";
   tooltip.style.top = "10px";
   tooltip.style.left = "10px";
   tooltip.style.display = "none";
@@ -102,7 +103,7 @@ function getElementInfo(element) {
   info += "<br/>";
 
   const eleStyle = getComputedStyle(element);
-  info += '<div style="font-size:12px; color:#27374D">';
+  info += '<div style="color:#27374D">';
   info += `<div>color ${eleStyle.color} <div style="display:inline-block; width:10px; height:10px; background-color:${eleStyle.color}"></div></div>`;
   info += `<div>background color ${eleStyle.backgroundColor} <div style="display:inline-block; width:10px; height:10px; background-color:${eleStyle.backgroundColor}"></div></div>`;
   info += "<div>";
