@@ -5,6 +5,7 @@ const data = {
   tooltipId: "chromeExtTooltip",
   tooltipZoomBtnId: "chromeExtTooltipZoomBtn",
   tooltipContentId: "chromeExtTooltipContent",
+  tooltipToggleSwitchOn: localStorage.getItem("chromeExtToggleSwitchOn"),
 };
 
 // tooltip 엘리먼트를 생성하는 함수
@@ -52,7 +53,7 @@ function createTooltip() {
 
 // 마우스 오버 이벤트를 감지하여 엘리먼트 정보를 표시하는 함수
 function handleMouseOver(event) {
-  if (data.tooltipIsDragging) return;
+  if (data.tooltipIsDragging || data.tooltipToggleSwitchOn) return;
 
   const target = event.target; // 이벤트가 발생한 엘리먼트 가져오기
   const elementInfo = getElementInfo(target); // 엘리먼트 정보 가져오기
@@ -155,6 +156,10 @@ function changeBigTooltip() {
   data.tooltip.childNodes[1].style.display = "block";
 }
 
+function setTooltipToggleSwitchOn(toggleSwitchOn) {
+  data.tooltipToggleSwitchOn = toggleSwitchOn;
+}
+
 data.tooltip = createTooltip();
 
 // body에 tooltip 엘리먼트 추가
@@ -217,6 +222,8 @@ data.tooltip.childNodes[0].addEventListener("click", () => {
   //     }
   //   });
 });
+
+//////////////////////////////////////////////////
 
 // DB 등록
 chrome.runtime.sendMessage(

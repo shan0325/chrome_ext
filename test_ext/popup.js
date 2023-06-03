@@ -138,20 +138,38 @@ setInterval(() => {
 
 // 토글 true 시 태그 정보 미노출
 const toggleSwitch = document.querySelector("#toggle");
-toggleSwitch.addEventListener('click', async (event) => {
-  const checked = event.currentTarget.checked
+toggleSwitch.addEventListener("click", async (event) => {
+  const checked = event.currentTarget.checked;
 
   let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   chrome.scripting.executeScript({
     target: { tabId: tab.id },
-    function: toogleTooltip,
+    func: setToggleTooltip,
+    args: [checked],
   });
 });
 
-function toogleTooltip() {
-  document.body.style.backgroundColor = '#999';
-
+function setToggleTooltip(checked) {
+  const toggleSwitchOn = checked ? "1" : "";
+  localStorage.setItem("chromeExtToggleSwitchOn", toggleSwitchOn);
   const chromeExtTooltip = document.querySelector("#chromeExtTooltip");
-  console.log(chromeExtTooltip);
-  
+  if (checked) {
+    chromeExtTooltip.style.display = "none";
+  } else {
+    chromeExtTooltip.style.display = "block";
+  }
+  setTooltipToggleSwitchOn(toggleSwitchOn);
 }
+
+chrome.tabs.query({ active: true, currentWindow: true }).then(([tab]) => {
+  chrome.scripting
+    .executeScript({
+      target: { tabId: tab.id },
+      func: () => {
+        return localStorage.getItem("chromeExtToggleSwitchOn");
+      },
+    })
+    .then(([data]) => {
+      toggleSwitch.checked = data.result === "1" ? true : false;
+    });
+});
